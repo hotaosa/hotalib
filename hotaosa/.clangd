@@ -1,3 +1,6 @@
+CompileFlags:
+  CompilationDatabase: bazel-hotalib
+  Remove: [-fno-canonical-system-headers]
 Diagnostics:
   ClangTidy:
     Add: [
