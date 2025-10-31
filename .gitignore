@@ -39,3 +39,16 @@
 
 # debug information files
 *.dwo
+
+# lock files
+*.lock
+
+# editor settings
+.vscode
+
+# bazel
+bazel-*
+compile_commands.json
+
+# Python env
+pyproject.toml

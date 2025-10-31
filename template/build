@@ -1,0 +1,8 @@
+#!/bin/bash
+pushd . >/dev/null
+
+PROBLEM_DIR=$(dirname $(realpath "$0"))
+PROJECT_DIR=$(dirname "$(dirname "$PROBLEM_DIR")")
+cd $PROJECT_DIR
+bazel build //contest/PDIR:solve -c opt && rm -f $PROBLEM_DIR/solve && cp $PROJECT_DIR/bazel-bin/contest/PDIR/solve $PROBLEM_DIR/solve
+popd >/dev/null

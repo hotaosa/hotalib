@@ -1,0 +1,34 @@
+#!/bin/bash
+set -e
+END_DIR="G"
+if [ $# -ge 1 ]; then
+  END_DIR="$1"
+fi
+
+if [[ ! "$END_DIR" =~ ^[A-Z]$ ]]; then
+  echo "invalid argument"
+  exit 1
+fi
+
+pushd .>/dev/null
+PROJECT_DIR="$(dirname "$(dirname "$(realpath "$0")")")"
+CONTEST_DIR="$PROJECT_DIR/contest"
+mkdir -p "$CONTEST_DIR"
+cd "$CONTEST_DIR"
+rm -rf [A-Z] &>/dev/null
+
+touch BUILD
+for DIR in {A..Z}; do
+  if [[ "$DIR" > "$END_DIR" ]]; then
+    break
+  fi
+  cp -rT ../template "$DIR"
+  mv "$DIR/_BUILD.bazel" "$DIR/BUILD.bazel"
+  sed "s/PDIR/$DIR/g" ../template/build >"$DIR/build"
+done
+
+cd "$PROJECT_DIR"
+bazel clean
+bazel fetch //...
+bazel build -c opt //hotaosa
+popd >/dev/null

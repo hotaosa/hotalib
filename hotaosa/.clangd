@@ -1,0 +1,30 @@
+CompileFlags:
+  CompilationDatabase: bazel-hotaosa-kyopro
+  Add: [-std=c++23, -I, ., -isystem, external/abseil-cpp+]
+  Remove: [-fno-canonical-system-headers]
+Diagnostics:
+  ClangTidy:
+    Add: [
+      "clang-analyzer-*",
+      "google-*",
+      "bugprone-*",
+      "modernize-*",
+      "performance-*",
+      "readability-*"
+    ]
+    Remove: [
+      "google-readability-function-size",
+      "google-global-names-in-headers",
+      "readability-identifier-length",
+      "modernize-use-trailing-return-type"
+    ]
+    CheckOptions:
+      readability-braces-around-statements.ShortStatementLines: 1
+      modernize-use-trailing-return-type.MinTypeNameLength: 4
+      misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic: true
+      google-readability-function-size.StatementThreshold: 400
+Style:
+  QuotedHeaders: "hotaosa/*"
+  AngledHeaders: ["absl/*", "atcoder/*", "boost/*", "Eigen/*"]
+InlayHints:
+  Enabled: true

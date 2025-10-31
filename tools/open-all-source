@@ -1,0 +1,14 @@
+#!/bin/bash
+
+pushd .>/dev/null
+TOOLS_DIR=$(cd "$(dirname "$0")" && pwd)
+cd "$TOOLS_DIR/../contest"
+
+for DIR in {A..Z}; do
+  if [ ! -d "$DIR" ]; then
+    break
+  fi
+  code "$DIR/main.cc"
+done
+
+popd >/dev/null

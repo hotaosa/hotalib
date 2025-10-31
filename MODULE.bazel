@@ -1,0 +1,21 @@
+""""""
+module(
+    name = "hotaosa",
+    version = "0.1.0",
+)
+
+bazel_dep(name = "abseil-cpp", version = "20250814.1")
+bazel_dep(name = "boost.geometry", version = "1.87.0")
+bazel_dep(name = "boost.icl", version = "1.87.0")
+bazel_dep(name = "boost.multiprecision", version = "1.87.0")
+bazel_dep(name = "boost.rational", version = "1.87.0")
+bazel_dep(name = "eigen", version = "3.4.0.bcr.2")
+bazel_dep(name = "rules_cc", version = "0.2.9")
+
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+http_archive(
+    name = "ac-library",
+    url = "https://github.com/atcoder/ac-library/releases/download/v1.5.1/ac-library.zip",
+    sha256 = "6dc0becebba69bb523ce907a31966fe30d39098935ec6b4b5289c94e42634be1",
+    build_file = "//third_party:BUILD.ac-library",
+)

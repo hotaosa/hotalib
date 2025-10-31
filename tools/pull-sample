@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ ! $# -ge 1 ]; then
+ echo "URL please"
+ exit 1
+fi
+
+pushd .>/dev/null
+TOOLS_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$TOOLS_DIR/../contest"
+
+for DIR in {A..Z}; do
+  if [ ! -d "$DIR" ]; then
+    break
+  fi
+  cd $DIR && oj d "${1}_${DIR,,}" && cd ..
+done
+
+popd >/dev/null
