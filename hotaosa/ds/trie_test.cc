@@ -16,6 +16,7 @@ TEST(TrieTest, InsertAndQueryCounts) {
   trie.Insert("abc");
   trie.Insert("abd");
 
+  EXPECT_EQ(trie.TotalCount(), 3);
   EXPECT_EQ(trie.Count("abc"), 2);
   EXPECT_EQ(trie.Count("abd"), 1);
   EXPECT_EQ(trie.Count("abe"), 0);
@@ -42,6 +43,7 @@ TEST(TrieTest, InsertAndQueryCounts) {
   EXPECT_TRUE(trie.ContainsPrefixOf("abc"));
   EXPECT_TRUE(trie.ContainsPrefixOf("abdz"));
   EXPECT_FALSE(trie.ContainsPrefixOf("cab"));
+  EXPECT_EQ(trie.TotalCount(), 3);
 }
 
 TEST(TrieTest, RemoveClampsCounts) {
@@ -66,6 +68,74 @@ TEST(TrieTest, RemoveClampsCounts) {
   EXPECT_EQ(trie.CountPrefixesOf("abd"), 0);
   EXPECT_FALSE(trie.ContainsWithPrefix("ab"));
   EXPECT_FALSE(trie.ContainsPrefixOf("abd"));
+  EXPECT_EQ(trie.TotalCount(), 0);
+}
+
+TEST(TrieTest, RemoveWithPrefixErasesSubtree) {
+  SmallTrie trie;
+  trie.Insert("abc", 2);
+  trie.Insert("abd");
+  trie.Insert("b");
+
+  trie.RemoveWithPrefix("ab");
+
+  EXPECT_EQ(trie.Count("abc"), 0);
+  EXPECT_EQ(trie.Count("abd"), 0);
+  EXPECT_EQ(trie.Count("b"), 1);
+
+  EXPECT_EQ(trie.CountWithPrefix("ab"), 0);
+  EXPECT_EQ(trie.CountWithPrefix(""), 1);
+  EXPECT_EQ(trie.CountPrefixesOf("abc"), 0);
+  EXPECT_TRUE(trie.Contains("b"));
+  EXPECT_FALSE(trie.ContainsWithPrefix("ab"));
+  EXPECT_FALSE(trie.ContainsPrefixOf("abz"));
+  EXPECT_EQ(trie.TotalCount(), 1);
+
+  // Removing a missing prefix changes nothing.
+  trie.RemoveWithPrefix("ab");
+  EXPECT_EQ(trie.Count("b"), 1);
+  EXPECT_EQ(trie.TotalCount(), 1);
+
+  trie.Insert("", 3);
+  EXPECT_EQ(trie.CountWithPrefix(""), 4);
+  EXPECT_EQ(trie.TotalCount(), 4);
+
+  // Removing the empty prefix clears the entire structure.
+  trie.RemoveWithPrefix("");
+  EXPECT_EQ(trie.CountWithPrefix(""), 0);
+  EXPECT_FALSE(trie.Contains("b"));
+  EXPECT_EQ(trie.TotalCount(), 0);
+}
+
+TEST(TrieTest, RemovePrefixesOfErasesPrefixChain) {
+  SmallTrie trie;
+  trie.Insert("");
+  trie.Insert("a");
+  trie.Insert("ab", 2);
+  trie.Insert("abc");
+  trie.Insert("abd");
+  trie.Insert("b");
+
+  trie.RemovePrefixesOf("abz");
+  EXPECT_EQ(trie.Count(""), 0);
+  EXPECT_EQ(trie.Count("a"), 0);
+  EXPECT_EQ(trie.Count("ab"), 0);
+  EXPECT_EQ(trie.Count("abc"), 1);
+  EXPECT_EQ(trie.Count("abd"), 1);
+  EXPECT_EQ(trie.Count("b"), 1);
+  EXPECT_EQ(trie.CountWithPrefix("ab"), 2);
+  EXPECT_EQ(trie.TotalCount(), 3);
+
+  trie.RemovePrefixesOf("abc");
+  EXPECT_EQ(trie.Count("abc"), 0);
+  EXPECT_EQ(trie.CountWithPrefix("ab"), 1);
+  EXPECT_EQ(trie.TotalCount(), 2);
+
+  trie.RemovePrefixesOf("");
+  EXPECT_EQ(trie.Count(""), 0);
+  EXPECT_EQ(trie.Count("abd"), 1);
+  EXPECT_EQ(trie.CountWithPrefix(""), 2);
+  EXPECT_EQ(trie.TotalCount(), 2);
 }
 
 using LargeTrie = Trie<10, '0', std::int64_t>;  // NOLINT
