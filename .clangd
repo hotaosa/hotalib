@@ -1,4 +1,4 @@
 CompileFlags:
-  CompilationDatabase: bazel-hotaosa-kyopro
+  CompilationDatabase: bazel-hotalib
   Add: [-std=c++23, -I, ., -isystem, external/abseil-cpp+]
   Remove: [-fno-canonical-system-headers]

@@ -1,8 +1,17 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
     name = "hotaosa",
     hdrs = glob(["**/*.h"]),
     visibility = ["//visibility:public"],
     deps = ["@ac-library//:aclib"],
+)
+
+cc_test(
+    name = "trie_test",
+    srcs = ["ds/trie_test.cc"],
+    deps = [
+        ":hotaosa",
+        "@googletest//:gtest_main",
+    ],
 )
