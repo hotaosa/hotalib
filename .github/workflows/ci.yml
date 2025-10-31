@@ -15,8 +15,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Bazelisk
-        uses: bazelbuild/setup-bazelisk@v2
+      - name: Build hotaosa
+        run: bazel build //hotaosa:all
 
       - name: Run hotaosa tests
-        run: bazel test //hotaosa/... --test_output=errors
+        run: bazel test //hotaos:all --test_output=errors
