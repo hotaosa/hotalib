@@ -19,4 +19,4 @@ jobs:
         run: bazel build //hotaosa:all
 
       - name: Run hotaosa tests
-        run: bazel test //hotaos:all --test_output=errors
+        run: bazel test //hotaosa:all --test_output=errors
