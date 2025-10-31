@@ -52,3 +52,6 @@ compile_commands.json
 
 # Python env
 pyproject.toml
+
+# local files (for contest)
+contest/
