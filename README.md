@@ -20,12 +20,6 @@ bazel test //hotaosa/...
 ## Project Layout
 
 - `hotaosa/` — Header-only library modules written in C++23.
-- `notes/` — Contest knowledge, solution write-ups, and related research (Japanese-only).
-- `testdata/` — Reusable inputs mirrored after the module layout.
 - `template/` — Contest-ready source templates.
 - `tools/` — Utilities that help set up contest environments locally.
-- `third_party/` — External dependencies vendored for builds (e.g. AtCoder Library).
-
-## Usage Policy
-
-- Library maintenance may leverage AI coding assistance, but many contests forbid its use during competition. Always review the latest rulebook for each contest and comply with any restrictions.
+- `third_party/` — External dependencies vendored for builds (e.g. [AC Library](https://github.com/atcoder/ac-library)).
