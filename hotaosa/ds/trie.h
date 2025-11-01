@@ -4,176 +4,183 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <memory>
+#include <concepts>
 #include <string_view>
-#include <type_traits>
+#include <vector>
 
 namespace hotaosa {
 
-template <int kNumChar, char kBase, typename CountType = int>
+// Generic trie over a fixed alphabet [kBase, kBase + kNumChar).
+// Stores multiplicities of strings and supports O(|word|) updates/queries.
+template <int kNumChar, char kBase, std::integral CountType = int>
 class Trie {
+  static_assert(kNumChar > 0, "Trie requires a positive alphabet size");
+
  public:
-  static_assert(std::is_integral_v<CountType>,
-                "Trie count type must be an integral type");
-  // Characters must map to indices in [0, kNumChar); violations trigger debug
-  // asserts. All operations below run in O(|word|).
+  Trie() : nodes_(1) {}
+
   Trie(const Trie&) = delete;
   Trie& operator=(const Trie&) = delete;
   Trie(Trie&&) = delete;
   Trie& operator=(Trie&&) = delete;
 
-  Trie() : root_(std::make_unique<Node>(nullptr)) {}
-
-  // ----- Mutating operations -----
-
-  // Convenience wrapper: insert one copy of `word`. O(|word|).
+  // Inserts one copy of `word`. O(|word|).
   void Insert(std::string_view word) {
     Insert(word, static_cast<CountType>(1));
   }
 
-  // Inserts `word` and increases its count by `count`. O(|word|).
+  // Inserts `count` copies of `word`. O(|word|).
   void Insert(std::string_view word, CountType count) {
     assert(count >= 0);
     if (count <= 0) {
       return;
     }
-    Node* node = root_.get();
-    node->prefix_count += count;
+    int node_index = 0;
+    nodes_[node_index].prefix_count += count;
     for (const char ch : word) {
       const int idx = ch - kBase;
       assert(IsValidIndex(idx));
-      if (!node->children[idx]) {
-        node->children[idx] = std::make_unique<Node>(node);
+      int child_index = nodes_[node_index].children[idx];
+      if (child_index == kNull) {
+        child_index = NewNode();
+        nodes_[node_index].children[idx] = child_index;
       }
-      node = node->children[idx].get();
-      node->prefix_count += count;
+      node_index = child_index;
+      nodes_[node_index].prefix_count += count;
     }
-    node->end_count += count;
+    nodes_[node_index].end_count += count;
   }
 
-  // Removes one occurrence if present. O(|word|).
+  // Removes one copy of `word` when present. O(|word|).
   void Remove(std::string_view word) {
     Remove(word, static_cast<CountType>(1));
   }
 
-  // Decrements the count by `count` (clamped at zero). O(|word|).
+  // Removes up to `count` copies of `word`. O(|word|).
   void Remove(std::string_view word, CountType count) {
     assert(count >= 0);
     if (count <= 0) {
       return;
     }
-    Node* node = Find(word);
-    if (node == nullptr) {
+    std::vector<int> path;
+    const int node_index = FindNode(word, &path);
+    if (node_index == kNull) {
       return;
     }
-    const CountType decrement = std::min(count, node->end_count);
-    if (decrement <= 0) {
+    const CountType removable =
+        std::min(count, nodes_[node_index].end_count);
+    if (removable <= 0) {
       return;
     }
-    node->end_count -= decrement;
-    SubtractFromAncestors(node, decrement);
+    nodes_[node_index].end_count -= removable;
+    SubtractAlongPath(path, removable);
   }
 
-  // Removes every string that has `prefix` as a prefix. O(|prefix|).
+  // Removes every string that has `prefix` as a prefix. O(|prefix| + size of subtree).
   void RemoveWithPrefix(std::string_view prefix) {
-    Node* node = Find(prefix);
-    if (node == nullptr) {
+    std::vector<int> path;
+    const int node_index = FindNode(prefix, &path);
+    if (node_index == kNull) {
       return;
     }
-    const CountType total = node->prefix_count;
+    const CountType total = nodes_[node_index].prefix_count;
     if (total <= 0) {
       return;
     }
-    if (node->parent == nullptr) {
-      node->end_count = 0;
-      node->prefix_count = 0;
-      for (auto& child : node->children) {
-        child.reset();
-      }
+    if (path.size() == 1) {
+      ClearSubtree(node_index);
       return;
     }
-    Node* parent = node->parent;
+    path.pop_back();  // retain ancestors only
+    SubtractAlongPath(path, total);
+    const int parent_index = path.back();
     const char last = prefix.back();
     const int idx = last - kBase;
     assert(IsValidIndex(idx));
-    parent->children[idx].reset();
-    SubtractFromAncestors(parent, total);
+    nodes_[parent_index].children[idx] = kNull;
+    ClearSubtree(node_index);
   }
 
   // Removes every stored string that is a prefix of `word`. O(|word|).
   void RemovePrefixesOf(std::string_view word) {
-    Node* node = root_.get();
-    if (node == nullptr) {
-      return;
-    }
-    if (node->end_count > 0) {
-      const CountType dec = node->end_count;
-      node->end_count = 0;
-      SubtractFromAncestors(node, dec);
+    std::vector<int> path;
+    path.reserve(word.size() + 1);
+    int node_index = 0;
+    path.push_back(node_index);
+    if (nodes_[node_index].end_count > 0) {
+      const CountType dec = nodes_[node_index].end_count;
+      nodes_[node_index].end_count = 0;
+      SubtractAlongPath(path, dec);
     }
     for (const char ch : word) {
       const int idx = ch - kBase;
-      if (!IsValidIndex(idx) || !node->children[idx]) {
-        break;
+      if (!IsValidIndex(idx)) {
+        return;
       }
-      node = node->children[idx].get();
-      if (node->end_count > 0) {
-        const CountType dec = node->end_count;
-        node->end_count = 0;
-        SubtractFromAncestors(node, dec);
+      const int child_index = nodes_[node_index].children[idx];
+      if (child_index == kNull) {
+        return;
+      }
+      node_index = child_index;
+      path.push_back(node_index);
+      if (nodes_[node_index].end_count > 0) {
+        const CountType dec = nodes_[node_index].end_count;
+        nodes_[node_index].end_count = 0;
+        SubtractAlongPath(path, dec);
       }
     }
   }
 
   // ----- Aggregate queries -----
 
-  // Total multiplicity of strings stored in the trie. O(1).
+  // Total multiplicity of stored strings. O(1).
   [[nodiscard]] CountType TotalCount() const {
-    return root_ == nullptr ? static_cast<CountType>(0) : root_->prefix_count;
+    return nodes_[0].prefix_count;
   }
 
-  // Returns the multiplicity of `word`. O(|word|).
+  // Multiplicity of `word`. O(|word|).
   [[nodiscard]] CountType Count(std::string_view word) const {
-    const Node* node = Find(word);
-    return node == nullptr ? static_cast<CountType>(0) : node->end_count;
+    const int node_index = FindNode(word);
+    return node_index == kNull ? static_cast<CountType>(0)
+                               : nodes_[node_index].end_count;
   }
 
-  // Returns the total multiplicity of strings that have `prefix` as a prefix.
-  // O(|prefix|).
+  // Total multiplicity of strings with `prefix` as a prefix. O(|prefix|).
   [[nodiscard]] CountType CountWithPrefix(std::string_view prefix) const {
-    const Node* node = Find(prefix);
-    return node == nullptr ? static_cast<CountType>(0) : node->prefix_count;
+    const int node_index = FindNode(prefix);
+    return node_index == kNull ? static_cast<CountType>(0)
+                               : nodes_[node_index].prefix_count;
   }
 
-  // Returns how many stored strings are prefixes of `word`. O(|word|).
+  // Number of stored strings that are prefixes of `word`. O(|word|).
   [[nodiscard]] CountType CountPrefixesOf(std::string_view word) const {
-    const Node* node = root_.get();
-    CountType total = node->end_count;
+    int node_index = 0;
+    CountType total = nodes_[node_index].end_count;
     for (const char ch : word) {
       const int idx = ch - kBase;
-      if (!IsValidIndex(idx) || !node->children[idx]) {
+      if (!IsValidIndex(idx)) {
         break;
       }
-      node = node->children[idx].get();
-      total += node->end_count;
+      const int child_index = nodes_[node_index].children[idx];
+      if (child_index == kNull) {
+        break;
+      }
+      node_index = child_index;
+      total += nodes_[node_index].end_count;
     }
     return total;
   }
 
   // ----- Boolean queries -----
 
-  // True if `word` exists with positive count. O(|word|).
   [[nodiscard]] bool Contains(std::string_view word) const {
     return Count(word) > 0;
   }
 
-  // True if there exists a stored string that has `prefix` as a prefix.
-  // O(|prefix|).
   [[nodiscard]] bool ContainsWithPrefix(std::string_view prefix) const {
     return CountWithPrefix(prefix) > 0;
   }
 
-  // True if some stored string is a prefix of `word`. O(|word|).
   [[nodiscard]] bool ContainsPrefixOf(std::string_view word) const {
     return CountPrefixesOf(word) > 0;
   }
@@ -182,64 +189,119 @@ class Trie {
 
   // Length of the longest common prefix with any stored string. O(|word|).
   [[nodiscard]] int LcpWith(std::string_view word) const {
-    const Node* p = root_.get();
+    int node_index = 0;
     const int len = static_cast<int>(word.size());
     for (int i = 0; i < len; ++i) {
       const int idx = word[i] - kBase;
-      if (!IsValidIndex(idx) || !p->children[idx]) {
+      if (!IsValidIndex(idx)) {
         return i;
       }
-      p = p->children[idx].get();
+      const int child_index = nodes_[node_index].children[idx];
+      if (child_index == kNull) {
+        return i;
+      }
+      node_index = child_index;
     }
     return len;
   }
 
  private:
-  struct Node {
-    CountType prefix_count{0};
-    CountType end_count{0};
-    Node* parent{nullptr};
-    std::array<std::unique_ptr<Node>, kNumChar> children{};
+  static constexpr int kNull = -1;
 
-    explicit Node(Node* parent) : parent(parent) {}
+  struct Node {
+    std::array<int, kNumChar> children;
+    CountType prefix_count;
+    CountType end_count;
+
+    Node() { Reset(); }
+
+    void Reset() {
+      children.fill(kNull);
+      prefix_count = 0;
+      end_count = 0;
+    }
   };
 
-  std::unique_ptr<Node> root_;
-
-  static constexpr bool IsValidIndex(int idx) {
+  [[nodiscard]] static constexpr bool IsValidIndex(int idx) {
     return 0 <= idx && idx < kNumChar;
   }
 
-  // Returns a mutable pointer to the node representing `word`, or null if the
-  // path does not exist.
-  Node* Find(std::string_view word) {
-    Node* p = root_.get();
+  int NewNode() {
+    if (!free_list_.empty()) {
+      const int idx = free_list_.back();
+      free_list_.pop_back();
+      nodes_[idx].Reset();
+      return idx;
+    }
+    nodes_.emplace_back();
+    return static_cast<int>(nodes_.size() - 1);
+  }
+
+  void ClearSubtree(int node_index) {
+    std::vector<int> stack;
+    stack.push_back(node_index);
+    while (!stack.empty()) {
+      const int idx = stack.back();
+      stack.pop_back();
+      Node& node = nodes_[idx];
+      for (int& child : node.children) {
+        if (child != kNull) {
+          stack.push_back(child);
+          child = kNull;
+        }
+      }
+      node.prefix_count = 0;
+      node.end_count = 0;
+      if (idx != 0) {
+        free_list_.push_back(idx);
+      }
+    }
+  }
+
+  void SubtractAlongPath(const std::vector<int>& path, CountType dec) {
+    if (dec <= 0) {
+      return;
+    }
+    for (const int idx : path) {
+      Node& node = nodes_[idx];
+      if (node.prefix_count > dec) {
+        node.prefix_count -= dec;
+      } else {
+        node.prefix_count = 0;
+      }
+    }
+  }
+
+  int FindNode(std::string_view word) const {
+    return FindNode(word, nullptr);
+  }
+
+  int FindNode(std::string_view word, std::vector<int>* path) const {
+    int node_index = 0;
+    if (path != nullptr) {
+      path->clear();
+      path->reserve(word.size() + 1);
+      path->push_back(node_index);
+    }
     for (const char ch : word) {
       const int idx = ch - kBase;
-      if (!IsValidIndex(idx) || !p->children[idx]) {
-        return nullptr;
+      if (!IsValidIndex(idx)) {
+        return kNull;
       }
-      p = p->children[idx].get();
+      const int child_index = nodes_[node_index].children[idx];
+      if (child_index == kNull) {
+        return kNull;
+      }
+      node_index = child_index;
+      if (path != nullptr) {
+        path->push_back(node_index);
+      }
     }
-    return p;
+    return node_index;
   }
 
-  // Const-qualified overload returning a read-only pointer to the node for
-  // `word`.
-  const Node* Find(std::string_view word) const {
-    return const_cast<Trie*>(this)->Find(word);
-  }
-
-  static void SubtractFromAncestors(Node* node, CountType dec) {
-    while (node != nullptr) {
-      if (node->prefix_count > dec) {
-        node->prefix_count -= dec;
-      } else {
-        node->prefix_count = 0;
-      }
-      node = node->parent;
-    }
-  }
+  std::vector<Node> nodes_;
+  std::vector<int> free_list_;
 };
 
 }  // namespace hotaosa
