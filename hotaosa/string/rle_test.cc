@@ -1,4 +1,4 @@
-#include "hotaosa/string/run_length_encoding.h"
+#include "hotaosa/string/rle.h"
 
 #include <string>
 #include <string_view>
@@ -9,9 +9,9 @@
 namespace hotaosa {
 namespace {
 
-TEST(RunLengthEncodeTest, CompressesString) {
+TEST(RleTest, CompressesString) {
   const std::string input = "aaabbc";
-  const auto encoded = RunLengthEncode(input);
+  const auto encoded = Rle(input);
   const std::vector expected = {
       RunLengthBlock<char>{'a', 3},
       RunLengthBlock<char>{'b', 2},
@@ -20,9 +20,9 @@ TEST(RunLengthEncodeTest, CompressesString) {
   EXPECT_EQ(encoded, expected);
 }
 
-TEST(RunLengthEncodeTest, HandlesNumericSequence) {
+TEST(RleTest, HandlesNumericSequence) {
   const std::vector<int> input = {1, 1, 2, 3, 3, 3, 3};
-  const auto encoded = RunLengthEncode(input);
+  const auto encoded = Rle(input);
   const std::vector expected = {
       RunLengthBlock<int>{1, 2},
       RunLengthBlock<int>{2, 1},
@@ -31,9 +31,9 @@ TEST(RunLengthEncodeTest, HandlesNumericSequence) {
   EXPECT_EQ(encoded, expected);
 }
 
-TEST(RunLengthEncodeTest, HandlesEmptyRange) {
+TEST(RleTest, HandlesEmptyRange) {
   const std::string_view input;
-  const auto encoded = RunLengthEncode(input);
+  const auto encoded = Rle(input);
   EXPECT_TRUE(encoded.empty());
 }
 

@@ -26,8 +26,8 @@ cc_test(
 )
 
 cc_test(
-    name = "run_length_encoding_test",
-    srcs = ["string/run_length_encoding_test.cc"],
+    name = "rle_test",
+    srcs = ["string/rle_test.cc"],
     deps = [
         ":hotaosa",
         "@googletest//:gtest_main",
