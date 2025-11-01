@@ -40,8 +40,7 @@ class BinaryTrie {
     if (count == 0) {
       return;
     }
-    const ValueType mask = BitMask();
-    assert((value & ~mask) == 0);
+    assert((value & ~BitMask()) == 0);
     const ValueType stored_value = ToStored(value);
     int node_index = 0;
     nodes_[node_index].subtree_count += count;
@@ -67,8 +66,7 @@ class BinaryTrie {
     if (count == 0) {
       return;
     }
-    const ValueType mask = BitMask();
-    assert((value & ~mask) == 0);
+    assert((value & ~BitMask()) == 0);
     const ValueType stored_value = ToStored(value);
     std::array<int, kNumBits + 1> path{};
     int node_index = 0;
@@ -95,8 +93,7 @@ class BinaryTrie {
 
   // Returns the multiplicity of `value` stored in the trie. O(kNumBits).
   [[nodiscard]] CountType Count(ValueType value) const {
-    const ValueType mask = BitMask();
-    assert((value & ~mask) == 0);
+    assert((value & ~BitMask()) == 0);
     const ValueType stored_value = ToStored(value);
     int node_index = 0;
     for (int bit = kNumBits - 1; bit >= 0; --bit) {
@@ -120,8 +117,7 @@ class BinaryTrie {
 
   // Returns how many stored values are strictly less than `value`. O(kNumBits).
   [[nodiscard]] CountType CountLess(ValueType value) const {
-    const ValueType mask = BitMask();
-    assert((value & ~mask) == 0);
+    assert((value & ~BitMask()) == 0);
     CountType result = 0;
     int node_index = 0;
     for (int bit = kNumBits - 1; bit >= 0 && node_index != kNull; --bit) {
