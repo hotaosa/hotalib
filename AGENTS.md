@@ -3,8 +3,7 @@
 ## Project Snapshot
 
 - **Domain focus**: Reusable algorithm library in `hotaosa/` for contest problem solving.
-- **Primary goals**: Keep the `hotaosa/` library header-only, contest-ready, balancing readability with performance and backed by reliable tests.
-- **Key timelines / cadence**: Update the library as new requirements emerge.
+- **Primary goals**: Keep the `hotaosa/` library header-only and contest-ready.
 
 ## Workflow Overview
 
@@ -31,9 +30,7 @@
 - **Test code location**: Co-locate test files alongside their headers in `hotaosa/` for quick traceability; update `BUILD.bazel` targets accordingly.
 - **Test framework**: Standardize on GoogleTest via Bazel `cc_test`; share common fixtures/utilities to avoid duplication across modules.
 
-## Knowledge Base & References
-
-- Keep reusable contest knowledge, solution notes, and related research under `notes/`, organizing by platform/contest/problem as needed.
+## References
 
 - **Style references**:
   - Google C++ Style Guide — <https://google.github.io/styleguide/cppguide.html>
