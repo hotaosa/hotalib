@@ -1,3 +1,6 @@
+If:
+  PathMatch: [.*\.h]
+  PathExclude: [.*_test\.cc]
 CompileFlags:
   CompilationDatabase: bazel-hotalib
   Remove: [-fno-canonical-system-headers]
@@ -15,7 +18,8 @@ Diagnostics:
       "google-readability-function-size",
       "google-global-names-in-headers",
       "readability-identifier-length",
-      "modernize-use-trailing-return-type"
+      "modernize-use-trailing-return-type",
+      "bugprone-easily-swappable-parameters"
     ]
     CheckOptions:
       readability-braces-around-statements.ShortStatementLines: 1
