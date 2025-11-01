@@ -28,8 +28,6 @@ cc_test(
 cc_test(
     name = "rle_test",
     srcs = ["string/rle_test.cc"],
-    name = "lis_test",
-    srcs = ["dp/lis_test.cc"],
     deps = [
         ":hotaosa",
         "@googletest//:gtest_main",
