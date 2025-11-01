@@ -26,6 +26,8 @@ cc_test(
 )
 
 cc_test(
+    name = "rle_test",
+    srcs = ["string/rle_test.cc"],
     name = "lis_test",
     srcs = ["dp/lis_test.cc"],
     deps = [
@@ -35,8 +37,8 @@ cc_test(
 )
 
 cc_test(
-    name = "run_length_encoding_test",
-    srcs = ["string/run_length_encoding_test.cc"],
+    name = "lis_test",
+    srcs = ["dp/lis_test.cc"],
     deps = [
         ":hotaosa",
         "@googletest//:gtest_main",

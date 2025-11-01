@@ -1,5 +1,5 @@
-#ifndef HOTAOSA_STRING_RUN_LENGTH_ENCODING_H_
-#define HOTAOSA_STRING_RUN_LENGTH_ENCODING_H_
+#ifndef HOTAOSA_STRING_RLE_H_
+#define HOTAOSA_STRING_RLE_H_
 
 #include <concepts>
 #include <ranges>
@@ -20,7 +20,7 @@ struct RunLengthBlock {
 // Compresses consecutive equal elements of `range` into run-length blocks.
 // Complexity: O(N) comparisons and copies, where N is the range length.
 template <std::ranges::forward_range Range>
-auto RunLengthEncode(const Range& range)
+auto Rle(const Range& range)
     -> std::vector<RunLengthBlock<std::ranges::range_value_t<Range>>>
   requires std::copy_constructible<std::ranges::range_value_t<Range>> &&
            std::equality_comparable<std::ranges::range_value_t<Range>>
@@ -52,4 +52,4 @@ auto RunLengthEncode(const Range& range)
 
 }  // namespace hotaosa
 
-#endif  // HOTAOSA_STRING_RUN_LENGTH_ENCODING_H_
+#endif  // HOTAOSA_STRING_RLE_H_
