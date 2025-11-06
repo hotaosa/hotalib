@@ -4,7 +4,10 @@ cc_library(
     name = "hotaosa",
     hdrs = glob(["**/*.h"]),
     visibility = ["//visibility:public"],
-    deps = ["@ac-library//:aclib"],
+    deps = [
+        "@ac-library//:aclib",
+        "@boost.icl",
+    ],
 )
 
 cc_test(
@@ -37,6 +40,15 @@ cc_test(
 cc_test(
     name = "lis_test",
     srcs = ["dp/lis_test.cc"],
+    deps = [
+        ":hotaosa",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "interval_set_test",
+    srcs = ["interval/interval_set_test.cc"],
     deps = [
         ":hotaosa",
         "@googletest//:gtest_main",
