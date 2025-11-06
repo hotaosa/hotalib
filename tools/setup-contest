@@ -23,12 +23,9 @@ for DIR in {A..Z}; do
     break
   fi
   cp -rT ../template "$DIR"
-  mv "$DIR/_BUILD.bazel" "$DIR/BUILD.bazel"
-  sed "s/PDIR/$DIR/g" ../template/build >"$DIR/build"
+  sed -i "s/PDIR/$DIR/g" "$DIR/build"
 done
 
 cd "$PROJECT_DIR"
-bazel clean
-bazel fetch //...
-bazel build -c opt //hotaosa
+bazel build //template:solve -c opt
 popd >/dev/null

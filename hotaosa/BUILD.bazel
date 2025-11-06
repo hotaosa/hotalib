@@ -1,8 +1,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
+# Interval set: thin wrapper over boost::icl::interval_set for non-negative keys.
 cc_library(
-    name = "hotaosa",
-    hdrs = glob(["**/*.h"]),
+    name = "interval_set",
+    hdrs = ["interval/interval_set.h"],
     visibility = ["//visibility:public"],
     deps = [
         "@ac-library//:aclib",

@@ -1,0 +1,26 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+_CONTEST_DEPS = [
+    "@abseil-cpp//absl/container:flat_hash_map",
+    "@abseil-cpp//absl/container:flat_hash_set",
+    "@abseil-cpp//absl/strings:strings",
+    "@ac-library//:aclib",
+    "@boost.geometry",
+    "@boost.multiprecision",
+    "@boost.rational",
+    "@eigen",
+]
+
+cc_binary(
+    name = "solve",
+    srcs = ["main.cc"],
+    copts = [
+        "-isystemexternal/abseil-cpp+",
+        "-isystemexternal/boost.geometry+",
+        "-isystemexternal/boost.icl+",
+        "-isystemexternal/boost.multiprecision+",
+        "-isystemexternal/boost.rational+",
+        "-isystemexternal/eigen+",
+    ],
+    deps = ["//hotaosa"] + _CONTEST_DEPS,
+)
