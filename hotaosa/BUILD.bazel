@@ -5,53 +5,91 @@ cc_library(
     name = "interval_set",
     hdrs = ["interval/interval_set.h"],
     visibility = ["//visibility:public"],
-    deps = [
-        "@ac-library//:aclib",
-        "@boost.icl",
-    ],
-)
-
-cc_test(
-    name = "trie_test",
-    srcs = ["ds/trie_test.cc"],
-    deps = [
-        ":hotaosa",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "binary_trie_test",
-    srcs = ["ds/binary_trie_test.cc"],
-    deps = [
-        ":hotaosa",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "rle_test",
-    srcs = ["string/rle_test.cc"],
-    deps = [
-        ":hotaosa",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "lis_test",
-    srcs = ["dp/lis_test.cc"],
-    deps = [
-        ":hotaosa",
-        "@googletest//:gtest_main",
-    ],
+    deps = ["@boost.icl"],
 )
 
 cc_test(
     name = "interval_set_test",
     srcs = ["interval/interval_set_test.cc"],
     deps = [
-        ":hotaosa",
+        ":interval_set",
         "@googletest//:gtest_main",
+    ],
+)
+
+# Binary trie: bitwise multiset structure.
+cc_library(
+    name = "binary_trie",
+    hdrs = ["ds/binary_trie.h"],
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "binary_trie_test",
+    srcs = ["ds/binary_trie_test.cc"],
+    deps = [
+        ":binary_trie",
+        "@googletest//:gtest_main",
+    ],
+)
+
+# Trie: string trie utilities.
+cc_library(
+    name = "trie",
+    hdrs = ["ds/trie.h"],
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "trie_test",
+    srcs = ["ds/trie_test.cc"],
+    deps = [
+        ":trie",
+        "@googletest//:gtest_main",
+    ],
+)
+
+# Run-length encoding helpers.
+cc_library(
+    name = "rle",
+    hdrs = ["string/rle.h"],
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "rle_test",
+    srcs = ["string/rle_test.cc"],
+    deps = [
+        ":rle",
+        "@googletest//:gtest_main",
+    ],
+)
+
+# Longest increasing subsequence routines.
+cc_library(
+    name = "lis",
+    hdrs = ["dp/lis.h"],
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "lis_test",
+    srcs = ["dp/lis_test.cc"],
+    deps = [
+        ":lis",
+        "@googletest//:gtest_main",
+    ],
+)
+
+# Aggregated contest-ready bundle.
+cc_library(
+    name = "hotaosa",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":binary_trie",
+        ":interval_set",
+        ":lis",
+        ":rle",
+        ":trie",
     ],
 )
