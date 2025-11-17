@@ -1,5 +1,4 @@
 CompileFlags:
-  CompilationDatabase: bazel-hotalib
   Add:
     - "-isystemexternal/abseil-cpp+"
     - "-isystemexternal/boost.geometry+"
