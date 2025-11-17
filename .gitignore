@@ -55,3 +55,9 @@ pyproject.toml
 
 # local files (for contest)
 contest/
+
+# clangd cache (stored next to compile_commands.json)
+.cache/
+
+# local settings for AI agent
+AGENTS.md
