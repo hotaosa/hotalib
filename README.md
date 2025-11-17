@@ -1,6 +1,6 @@
 # hotalib
 
-Header-only C++23 algorithm library and notes for solving AtCoder-style problems.
+Header-only C++23 library for solving AtCoder problems.
 
 ## Overview
 
